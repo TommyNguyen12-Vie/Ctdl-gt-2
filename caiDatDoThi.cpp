@@ -3,43 +3,18 @@
 #include <fstream>
 #define MAX 20
 using namespace std;
+int a [MAX][MAX];
+int n;
+int C[MAX];
+int dfs[MAX]; // do thi co maxsize
+int ndfs = 0; // chi so de moi lan them 1 dinh ma no duyet duoc
 // cho vertext lam bien toan cuc, de khi di vao ham nao cung co the biet duoc ten cac dinh do thi
 char vertext[MAX];
+int bfs[MAX];
+int nbfs = 0;
 
-void input (int a[][MAX],  int &n);
-void inputFromFile(int a[][MAX], int &n);
-void output(int a[][MAX], int n);
-
-// danh sach ke
-struct Node {
-    int info;
-    Node *link;
-};
-Node *first[MAX];
-int n; // so luong dinh do thi
-void init();
-Node *makeNode(int x);
-void insertFirst(Node *&f,int x);
-void inputList();
-void inputListFromFile();
-void output1(int x); // xuat cac dinh ke voi dinh x
-void outputList(); // xuat het
-
-
-int main(){
-    // ma tran ke
-    // int a [MAX][MAX], n;
-    // inputFromFile(a,n);
-    // output(a,n);
-
-    // danh sach ke
-    inputList();
-    outputList();
-
-    return 0;
-}
 // ma tran ke
-void input (int a[][MAX],  int &n)
+void inputMatrix (int a[][MAX],  int &n)
 {
     // nhap so luong dinh cua do thi
     do {
@@ -59,7 +34,7 @@ void input (int a[][MAX],  int &n)
         cin >> a[i][j];
     }
 }
-void inputFromFile(int a[][MAX], int &n)
+void inputMatrixFromFile(int a[][MAX], int &n)
 {
     ifstream inFile;
     inFile.open("D:\\DoThiG.txt");
@@ -91,7 +66,14 @@ for( int i =0; i < n; i++)
     cout << endl;
 }
 }
+
 // danh sach ke
+struct Node {
+    int info;
+    Node *link;
+};
+Node *first[MAX];
+int size; // so luong dinh do thi
 void init()
 {
     for(int i =0; i < n ; i++)
@@ -163,4 +145,191 @@ void outputList() // xuat het
         cout << endl;
     }
 }
+
+// stack
+Node *st; // dat ten Stack
+void init_Stack()
+{
+st = NULL;
+}
+bool isEmpty()
+{
+    if(st == NULL)
+    return true;
+    return false;
+}
+void push(int s)
+{
+    Node *p = new Node ;
+    if(p == NULL)
+    return;
+    p->info = s;
+    p->link = st;
+    st =p;
+}
+void pop (int &v) //lay ptu ra khoi ds
+{
+Node *p = st;
+v = p->info;
+st = st->link;
+delete p;
+}
+void process_Stack()
+{
+    Node *p = st;
+    while(p != NULL)
+    {
+        cout << p-> info << " ";
+        p = p->link;
+    }
+    cout << endl;
+}
+
+// queue
+Node *front, *rear; // dau va duoi
+void init_Queue()
+{
+    front = rear = NULL;
+}
+bool isEmptyQ()
+{
+    if(front == NULL)
+    return true;
+    return false;
+}
+void pushQ (int x)
+{
+    Node *p = new Node ;
+    p->info = x;
+    p->link = NULL;
+    if(rear == NULL)
+        front = p;
+    else 
+        rear->link = p;
+    rear = p;
+}
+void popQ(int &x)
+{
+if(front != NULL)
+{
+    Node *p = front; // cho front doi ra sau
+    x = p->info;
+    front = front ->link; // doi ra sau , va delete p
+    if(front == NULL)
+        rear == NULL;
+    delete p;
+}
+}
+void process_Queue()
+{
+    if(front != NULL)
+    {
+        cout <<"Hang doi dang luu tru: ";
+        Node *p = front;
+        while(p != NULL)
+        {
+            cout << p->info << " ";
+             p=p->link;
+        }
+         cout << endl;
+    }
+}
+
+//DFS
+void initEdgesStatus()
+{
+    for( int i =0; i < n; i++)
+        C[i] = 1;// tat ca dinh o trang thai chua xet
+}
+void DFS(int s) // s la dinh bat dau duyet dfs
+{   
+    initEdgesStatus();
+    // khoi tao stack
+    init_Stack();
+    push(s); // push dinh bat dau
+    // dsf[ndfs] = s;
+    // ndfs++;
+    dfs[ndfs++] = s; // toan tu tang hau to
+    C[s] = 0;
+    int v = -1, u =s ; // bat dau tu dinh ben ngoa, u la dinh xet tiep theo
+    while(!isEmpty())
+    {
+        if(v == n)
+            pop(u);
+        for(v = 0; v < n; v++)
+            if(a[u][v] != 0 && C[v] == 1)
+            {
+                push(u);
+                push(v);
+                dfs[ndfs++] = v;
+                C[v] =0;
+                u = v;
+                break; // tim dung 1 nhanh va di nhanh do
+            }
+    }
+}
+void output_DFS()
+{
+    cout <<"ket qua duyet DFS: ";
+    for( int i =0 ; i < ndfs; i++)
+        cout << vertext[dfs[i]] << " ";
+    cout << endl;
+}
+
+// BFS
+void BFS(int v)
+{
+    initEdgesStatus();// khoi tao deu o trang thai 1
+    init_Queue();
+    int w, p; // dinh bat dau
+    pushQ(v);
+    C[v] = 0;
+    while(front != NULL)
+    {
+        popQ(p);
+        bfs[nbfs++] = p;
+        for( w = 0; w < n; w++)
+            if(C[w] == 1 && a[p][w] == 1)
+            {
+                pushQ(w);
+                C[w] = 0;// cho biet dinh da duoc xet roi
+            }
+    }
+}
+
+void output_BFS()
+{
+    cout <<"Ket qua duyet BFS: ";
+    for(int i =0; i < nbfs; i++)
+        cout << vertext[bfs[i]] << " ";
+    cout << endl;
+}
+
+int main(){
+    // ma tran ke
+    
+     inputMatrixFromFile(a,n);
+     cout << "Ma tran ke "<< endl;
+     output(a,n);
+    DFS(0);
+    output_DFS();
+
+    BFS(0);
+    output_BFS();
+    // danh sach ke
+    // inputList();
+    // outputList();
+    // init_Stack();
+    // push(5);
+    // push (7);
+    // push(12);
+    // process_Stack();
+    // int v;
+    // pop(v);
+    // cout << v << endl;
+    // process_Stack();
+
+    return 0;
+}
+
 
