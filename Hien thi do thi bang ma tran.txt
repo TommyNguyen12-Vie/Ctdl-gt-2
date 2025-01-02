@@ -842,3 +842,145 @@ int main(){
 
     return 0;
 }
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+using namespace std;
+
+// Ham hien thi menu
+void hienThiMenu() {
+    cout << "--- Chuong trinh sap xep bien so xe ---" << endl;
+    cout << "Vui long nhap cac bien so xe (cach nhau bang dau cach): " << endl;
+}
+
+// Ham kiem tra tinh hop le cua bien so xe
+bool kiemTraBienSo(const string& bienSo) {
+    for (char c : bienSo) {
+        if (!isalnum(c) && c != '|') {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Ham in danh sach bien so xe da sap xep
+void inBienSo(const vector<string>& danhSachBienSo) {
+    cout << "\nDanh sach bien so xe da sap xep:" << endl;
+    for (const auto& bienSo : danhSachBienSo) {
+        cout << bienSo << endl;
+    }
+}
+
+// Ham lay do dai lon nhat cua chuoi trong danh sach
+int layDoDaiLonNhat(const vector<string>& danhSachBienSo) {
+    int doDaiMax = 0;
+    for (const auto& bienSo : danhSachBienSo) {
+        doDaiMax = max(doDaiMax, (int)bienSo.size());
+    }
+    return doDaiMax;
+}
+
+// Ham sap xep dem theo vi tri ky tu cu the
+void sapXepDem(vector<string>& danhSachBienSo, int viTri) {
+    int n = danhSachBienSo.size();
+    vector<string> ketQua(n);
+    int dem[257] = {0};
+
+    // Dem so lan xuat hien cua moi ky tu tai vi tri viTri
+    for (const auto& bienSo : danhSachBienSo) {
+        char kyTu = (viTri < bienSo.size()) ? bienSo[viTri] : 0;
+        dem[kyTu + 1]++;
+    }
+
+    // Tinh tong cong don
+    for (int i = 1; i < 257; i++) {
+        dem[i] += dem[i - 1];
+    }
+
+    // Sap xep cac chuoi theo thu tu
+    for (int i = n - 1; i >= 0; i--) {
+        char kyTu = (viTri < danhSachBienSo[i].size()) ? danhSachBienSo[i][viTri] : 0;
+        ketQua[dem[kyTu + 1] - 1] = danhSachBienSo[i];
+        dem[kyTu + 1]--;
+    }
+
+    // Sao chep ket qua ve danh sach ban dau
+    danhSachBienSo = ketQua;
+}
+
+// Ham thuc hien Radix Sort
+void sapXepRadix(vector<string>& danhSachBienSo) {
+    int doDaiMax = layDoDaiLonNhat(danhSachBienSo);
+
+    // Sap xep theo tung vi tri ky tu tu phai sang trai
+    for (int viTri = doDaiMax - 1; viTri >= 0; viTri--) {
+        sapXepDem(danhSachBienSo, viTri);
+    }
+}
+
+int main() {
+    vector<string> danhSachBienSo;
+    string nhapLieu;
+
+    // Hien thi menu
+    hienThiMenu();
+
+    // Nhap du lieu tu nguoi dung
+    getline(cin, nhapLieu);
+    size_t viTri = 0;
+    while ((viTri = nhapLieu.find(' ')) != string::npos) {
+        string bienSo = nhapLieu.substr(0, viTri);
+        if (kiemTraBienSo(bienSo)) {
+            danhSachBienSo.push_back(bienSo);
+        }
+        nhapLieu.erase(0, viTri + 1);
+    }
+    if (kiemTraBienSo(nhapLieu)) {
+        danhSachBienSo.push_back(nhapLieu);
+    }
+
+    // Cac tuy chon sap xep
+    cout << "\nChon phuong phap sap xep:" << endl;
+    cout << "1. Radix Sort (Thu tu tu dien)" << endl;
+    cout << "2. Radix Sort nguoc" << endl;
+    cout << "3. Theo do dai (tang dan)" << endl;
+    cout << "4. Theo do dai (giam dan)" << endl;
+    
+    int luaChon;
+    cout << "Nhap lua chon (1-4): ";
+    cin >> luaChon;
+
+    switch (luaChon) {
+        case 1:
+            sapXepRadix(danhSachBienSo);
+            break;
+        case 2:
+            sapXepRadix(danhSachBienSo);
+            reverse(danhSachBienSo.begin(), danhSachBienSo.end());
+            break;
+        case 3:
+            sort(danhSachBienSo.begin(), danhSachBienSo.end(), [](const string& a, const string& b) {
+                return a.size() < b.size();
+            });
+            break;
+        case 4:
+            sort(danhSachBienSo.begin(), danhSachBienSo.end(), [](const string& a, const string& b) {
+                return a.size() > b.size();
+            });
+            break;
+        default:
+            cout << "Lua chon khong hop le! Mac dinh su dung Radix Sort." << endl;
+            sapXepRadix(danhSachBienSo);
+            break;
+    }
+
+    // In danh sach bien so xe da sap xep
+    inBienSo(danhSachBienSo);
+
+    return 0;
+}
