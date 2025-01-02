@@ -1,0 +1,844 @@
+// Hien thi do thi bang ma tran ke, danh sach ke
+#include <iostream>
+#include <fstream>
+#define MAX 20
+using namespace std;
+int a [MAX][MAX];
+int n;
+int C[MAX];
+int dfs[MAX]; // do thi co maxsize
+int ndfs = 0; // chi so de moi lan them 1 dinh ma no duyet duoc
+// cho vertext lam bien toan cuc, de khi di vao ham nao cung co the biet duoc ten cac dinh do thi
+char vertext[MAX];
+int bfs[MAX];
+int nbfs = 0;
+
+// ma tran ke
+void inputMatrix (int a[][MAX],  int &n)
+{
+    // nhap so luong dinh cua do thi
+    do {
+        cout <<"Nhap so luong dinh cua do thi: ";
+        cin >> n;
+    }while(n <= 0 || n > MAX);
+    // nhap ten cua tung dinh trong do thi
+    cout <<"Nhap n ten cac dinh cua do thi theo thu tu: ";
+    for(int i =0 ; i < n; i++)
+    cin >> vertext[i];
+
+    //nhap ma tran ke
+    for( int i =0; i <n ;i++)
+    {
+        cout << "Nhap tinh chat ke (1/0) cua cac dinh voi dinh "<< vertext[i] << " ";
+        for( int j =0; j < n; j++)
+        cin >> a[i][j];
+    }
+}
+void inputMatrixFromFile(int a[][MAX], int &n)
+{
+    ifstream inFile;
+    inFile.open("D:\\DoThiG.txt");
+    if(inFile.is_open())
+    {
+        inFile >> n;
+        for( int i =0; i < n; i++)
+        inFile >> vertext[i];
+        for(int i =0; i < n ;i++)
+            for(int j =0; j < n; j++)
+                inFile >> a[i][j];
+        inFile.close();
+        cout <<"Doc ma tran ke thanh cong " << endl;
+    }
+    else 
+    cout <<"Khong mo duoc file "<< endl;
+}
+void output(int a[][MAX], int n)
+{
+cout << "\t";
+for( int i =0; i < n; i++)
+cout << vertext[i] << "\t";
+cout << endl;
+for( int i =0; i < n; i++)
+{
+    cout << vertext[i] << "\t";
+    for(int j =0; j < n ; j++)
+    cout << a[i][j] << "\t";
+    cout << endl;
+}
+}
+
+// danh sach ke
+struct Node {
+    int info;
+    Node *link;
+};
+Node *first[MAX];
+int size; // so luong dinh do thi
+void init()
+{
+    for(int i =0; i < n ; i++)
+    first[i] == NULL;
+
+}
+Node *makeNode(int x)
+{
+    Node *p = new Node ;
+    if(!p) return NULL;
+    p ->info = x;
+    p->link = NULL;
+    return p;
+}
+void insertFirst(Node *&f,int x)
+{
+    Node *p = makeNode(x);
+    if(!p) return;
+    if(f == NULL) 
+    f = p;
+    else 
+    {
+        p->link =f;
+        f =p;
+    }
+}
+void inputList()
+{
+    do{
+        cout << "Nhap so luong dinh do thi: ";
+        cin >> n;
+    }while (n <=0 || n > MAX);
+    init();
+    // Nhap ten cac dinh cua do thi vao ma tran vertext
+    cout <<"Nhap ten cac dinh cua do thi: ";
+    for( int i=0; i < n; i++)
+        cin >> vertext[i];
+    for(int i =0; i < n; i++)
+    {
+        // dua cac dinh dang xet vao ds ke dau tien
+        insertFirst(first[i], i);
+        
+        //dua tung dinh ke vao ds ke
+         int x; 
+        cout <<"Nhap cac dinh ke voi dinh " << i << "(muon dung thi nhan -1): ";
+        while(cin >> x)
+        {
+            if(x == -1)
+            break;
+        insertFirst(first[i], i);
+        }
+        
+    }
+
+}
+void inputListFromFile();
+void output1(int x); // xuat cac dinh ke voi dinh x
+void outputList() // xuat het
+{
+    for( int i =0; i < n; i++)
+    {
+        cout << "Danh sach ke thu "<< i << ": ";
+        Node *q = first[i];
+        while(q != NULL)
+        {
+            cout << q->info << " ";
+            q = q->link;
+        }
+        cout << endl;
+    }
+}
+
+// stack
+Node *st; // dat ten Stack
+void init_Stack()
+{
+st = NULL;
+}
+bool isEmpty()
+{
+    if(st == NULL)
+    return true;
+    return false;
+}
+void push(int s)
+{
+    Node *p = new Node ;
+    if(p == NULL)
+    return;
+    p->info = s;
+    p->link = st;
+    st =p;
+}
+void pop (int &v) //lay ptu ra khoi ds
+{
+Node *p = st;
+v = p->info;
+st = st->link;
+delete p;
+}
+void process_Stack()
+{
+    Node *p = st;
+    while(p != NULL)
+    {
+        cout << p-> info << " ";
+        p = p->link;
+    }
+    cout << endl;
+}
+
+// queue
+Node *front, *rear; // dau va duoi
+void init_Queue()
+{
+    front = rear = NULL;
+}
+bool isEmptyQ()
+{
+    if(front == NULL)
+    return true;
+    return false;
+}
+void pushQ (int x)
+{
+    Node *p = new Node ;
+    p->info = x;
+    p->link = NULL;
+    if(rear == NULL)
+        front = p;
+    else 
+        rear->link = p;
+    rear = p;
+}
+void popQ(int &x)
+{
+if(front != NULL)
+{
+    Node *p = front; // cho front doi ra sau
+    x = p->info;
+    front = front ->link; // doi ra sau , va delete p
+    if(front == NULL)
+        rear == NULL;
+    delete p;
+}
+}
+void process_Queue()
+{
+    if(front != NULL)
+    {
+        cout <<"Hang doi dang luu tru: ";
+        Node *p = front;
+        while(p != NULL)
+        {
+            cout << p->info << " ";
+             p=p->link;
+        }
+         cout << endl;
+    }
+}
+
+//DFS
+void initEdgesStatus()
+{
+    for( int i =0; i < n; i++)
+        C[i] = 1;// tat ca dinh o trang thai chua xet
+}
+void DFS(int s) // s la dinh bat dau duyet dfs
+{   
+    initEdgesStatus();
+    // khoi tao stack
+    init_Stack();
+    push(s); // push dinh bat dau
+    // dsf[ndfs] = s;
+    // ndfs++;
+    dfs[ndfs++] = s; // toan tu tang hau to
+    C[s] = 0;
+    int v = -1, u =s ; // bat dau tu dinh ben ngoa, u la dinh xet tiep theo
+    while(!isEmpty())
+    {
+        if(v == n)
+            pop(u);
+        for(v = 0; v < n; v++)
+            if(a[u][v] != 0 && C[v] == 1)
+            {
+                push(u);
+                push(v);
+                dfs[ndfs++] = v;
+                C[v] =0;
+                u = v;
+                break; // tim dung 1 nhanh va di nhanh do
+            }
+    }
+}
+void output_DFS()
+{
+    cout <<"ket qua duyet DFS: ";
+    for( int i =0 ; i < ndfs; i++)
+        cout << vertext[dfs[i]] << " ";
+    cout << endl;
+}
+
+// BFS
+void BFS(int v)
+{
+    initEdgesStatus();// khoi tao deu o trang thai 1
+    init_Queue();
+    int w, p; // dinh bat dau
+    pushQ(v);
+    C[v] = 0;
+    while(front != NULL)
+    {
+        popQ(p);
+        bfs[nbfs++] = p;
+        for( w = 0; w < n; w++)
+            if(C[w] == 1 && a[p][w] == 1)
+            {
+                pushQ(w);
+                C[w] = 0;// cho biet dinh da duoc xet roi
+            }
+    }
+}
+
+void output_BFS()
+{
+    cout <<"Ket qua duyet BFS: ";
+    for(int i =0; i < nbfs; i++)
+        cout << vertext[bfs[i]] << " ";
+    cout << endl;
+}
+
+int main(){
+    int choice;
+    cout << "\n===== MENU CHUC NANG =====\n";
+    cout << "1. Nhap ma tran ke tu ban phim\n";
+    cout << "2. Nhap ma tran ke tu file\n";
+    cout << "3. Hien thi ma tran ke\n";
+    cout << "4. Duyet DFS\n";
+    cout << "5. Duyet BFS\n";
+    cout << "6. Nhap danh sach ke tu ban phim\n";
+    cout << "7. Hien thi danh sach ke\n";
+    cout << "0. Thoat\n";
+    cout << "==========================\n";
+    
+    do{
+        cout << "Nhap lua chon cua ban: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: // nhap ma tran tu ban phim
+                inputMatrix(a, n);
+                cout << "Da nhap ma tran ke thanh cong.\n";
+                break;
+            case 2: // nhap ma tran ke tu file
+                inputMatrixFromFile(a, n);
+                break;
+            case 3: // hien thi ma tran ke
+                cout << "Ma tran ke:\n";
+                output(a, n);
+                break;
+            case 4: // duyet dfs
+                int startDFS;
+                cout << "Nhap dinh bat dau (chi so 0-based): ";
+                cin >> startDFS;
+                DFS(startDFS);
+                output_DFS();
+                break;
+            case 5: // duyet bfs
+                int startBFS;
+                cout << "Nhap dinh bat dau (chi so 0-based): ";
+                cin >> startBFS;
+                BFS(startBFS);
+                output_BFS();
+                break;
+            case 6: // nhap danh sach ke tu ban phim
+                inputList();
+                cout << "Da nhap danh sach ke thanh cong.\n";
+                break;
+            case 7: //hien thi danh sach ke
+                cout << "Danh sach ke:\n";
+                outputList();
+                break;
+            case 0: // Thoat
+                cout << "Cam on ban da su dung chuong trinh.\n";
+                break;
+            default:
+                cout << "Lua chon khong hop le. Vui long thu lai!\n";
+                break;
+        }
+
+    }while(choice != 0);
+
+
+    return 0;
+}
+
+
+
+
+#include <iostream>
+#include <ctime>
+#include <vector>  // Thêm thư viện vector
+#define MAX 100
+using namespace std;
+
+// Hàm xuất mảng
+void outPut(int arr[], int size) {
+    for (int i = 0; i < size; i++) {
+        cout << arr[i] << " ";
+    }
+    cout << endl;
+}
+
+// Hàm tìm giá trị lớn nhất trong mảng
+int getMax(int a[], int n) {
+    int maxVal = a[0];
+    for (int i = 1; i < n; i++) {
+        if (a[i] > maxVal) {
+            maxVal = a[i];
+        }
+    }
+    return maxVal;
+}
+
+// Hàm đếm sắp xếp theo chữ số
+void countSort(int a[], int n, int exp) {
+    int output[n];
+    int count[10] = {0};
+
+    // Đếm số lần xuất hiện của các chữ số
+    for (int i = 0; i < n; i++) {
+        count[(a[i] / exp) % 10]++;
+    }
+
+    // Cộng dồn để xác định vị trí trong mảng output
+    for (int i = 1; i < 10; i++) {
+        count[i] += count[i - 1];
+    }
+
+    // Xây dựng mảng output
+    for (int i = n - 1; i >= 0; i--) {
+        int digit = (a[i] / exp) % 10;
+        output[count[digit] - 1] = a[i];
+        count[digit]--;
+    }
+
+    // Sao chép mảng output vào mảng gốc
+    for (int i = 0; i < n; i++) {
+        a[i] = output[i];
+    }
+}
+
+// Hàm Radix Sort
+void RadixSort(int a[], int n) {
+    int m = getMax(a, n);
+
+    // Thực hiện sắp xếp theo từng chữ số (đơn vị, chục, trăm,...)
+    for (int exp = 1; m / exp > 0; exp *= 10) {
+        countSort(a, n, exp);
+    }
+}
+
+// Hàm Shell Sort
+void ShellSort(int a[], int n) {
+    for (int gap = n / 2; gap > 0; gap /= 2) {
+        for (int i = gap; i < n; i++) {
+            int temp = a[i];
+            int j;
+            for (j = i; j >= gap && a[j - gap] > temp; j -= gap) {
+                a[j] = a[j - gap];
+            }
+            a[j] = temp;
+        }
+    }
+}
+
+// Hàm Counting Sort
+void countingSort(int a[], int b[], int n, int k) {
+    int *c = new int[k + 1];
+    for (int i = 0; i <= k; i++)
+        c[i] = 0;
+
+    for (int i = 0; i < n; i++)
+        c[a[i]]++;
+
+    int j = 0;
+    for (int i = 0; i <= k; i++) {
+        while (c[i] > 0) {
+            b[j++] = i;
+            c[i]--;
+        }
+    }
+
+    delete[] c;
+}
+
+// Hàm sắp xếp chèn (Insertion Sort) cho mỗi bucket
+void insertionSort(vector<int>& bucket) {
+    int size = bucket.size();
+    for (int i = 1; i < size; i++) {
+        int key = bucket[i];
+        int j = i - 1;
+        while (j >= 0 && bucket[j] > key) {
+            bucket[j + 1] = bucket[j];
+            j--;
+        }
+        bucket[j + 1] = key;
+    }
+}
+
+// Hàm BucketSort
+void BucketSort(int a[], int n) {
+    // Tạo n nhóm buckets
+    vector<int> b[n];
+
+    // Chèn các phần tử vào các bucket
+    for (int i = 0; i < n; i++) {
+        int bi = n * a[i] / 100;  // Mỗi giá trị sẽ rơi vào một bucket từ 0 đến n-1
+        b[bi].push_back(a[i]);
+    }
+
+    // Sắp xếp từng bucket bằng Insertion Sort
+    for (int i = 0; i < n; i++) {
+        insertionSort(b[i]);
+    }
+
+    // Nối các bucket lại với nhau
+    int index = 0;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < b[i].size(); j++) {
+            a[index++] = b[i][j];
+        }
+    }
+}
+
+int main() {
+    int inputChoice, choice;
+    int n, k = 0;
+    int arr[MAX], sortedArr[MAX];
+    //tinh tg thuc thi
+    clock_t begin, end;
+    double t;
+
+    // Nhập số lượng phần tử của mảng
+    cout << "Nhap so luong phan tu cua mang: ";
+    cin >> n;
+
+    if (n <= 0 || n > MAX) {
+        cout << "So luong phan tu khong hop le!" << endl;
+        return 1;
+    }
+
+    // Nhập cách tạo mảng
+    cout << "Ban muon nhap Manual (1) hay Automatic (2): ";
+    cin >> inputChoice;
+
+    if (inputChoice == 1) {
+        cout << "Nhap cac phan tu cua mang: ";
+        for (int i = 0; i < n; i++) {
+            cin >> arr[i];
+            if (arr[i] > k)
+                k = arr[i];
+        }
+    } else if (inputChoice == 2) {
+        srand(time(0));
+        for (int i = 0; i < n; i++) {
+            arr[i] = rand() % 100 + 1;
+            if (arr[i] > k)
+                k = arr[i];
+        }
+        cout << "Mang ngau nhien tu 1 -> 100: ";
+        outPut(arr, n);
+    } else {
+        cout << "Lua chon khong hop le!" << endl;
+        return 1;
+    }
+
+    // Menu lựa chọn thuật toán
+    do {
+        cout << "\n========MENU=========" << endl
+             << "1. ShellSort" << endl
+             << "2. CountingSort" << endl
+             << "3. RadixSort" << endl
+             << "4. BucketSort" << endl
+             << "0. Thoat chuong trinh" << endl;
+        cout << "Moi ban chon: ";
+        cin >> choice;
+
+        switch (choice) {
+        case 1: {
+            begin = clock();
+            cout << "1. Sap xep theo ShellSort" << endl;
+            ShellSort(arr, n);
+            cout << "Mang sau khi sap xep: ";
+            outPut(arr, n);
+            end = clock();
+            t = (end - begin) * 1.0/CLOCKS_PER_SEC;
+            cout << "Thoi gian thuc thi cua giai thuat sap xep theo ShellSort va xuat ket qua la: "<< t << endl;
+            break;
+        }
+        case 2: {
+            begin = clock();
+            cout << "2. Sap xep theo CountingSort" << endl;
+            countingSort(arr, sortedArr, n, k);
+            cout << "Mang sau khi sap xep: ";
+            outPut(sortedArr, n);
+            end = clock();
+            t = (end - begin) * 1.0 / CLOCKS_PER_SEC;
+            cout << "Thoi gian thuc thi cua giai thuat sap xep theo countingSort va xuat ket qua la: "<< t << endl;
+            break;
+        }
+        case 3: {
+            begin = clock();
+            cout << "3. Sap xep theo RadixSort" << endl;
+            RadixSort(arr, n);
+            cout << "Mang sau khi sap xep: ";
+            outPut(arr, n);
+            end = clock();
+            t = (end - begin) * 1.0 / CLOCKS_PER_SEC;
+            cout << "Thoi gian thuc thi cua giai thuat sap xep RadixSort va xuat ket qua la: "<< t << endl;
+            break;
+        }
+        case 4: {
+            begin = clock();
+            cout << "4. Sap xep theo BucketSort" << endl;
+            BucketSort(arr, n);
+            cout << "Mang sau khi sap xep: ";
+            outPut(arr, n);
+            end = clock();
+            t = (end - begin) * 1.0 / CLOCKS_PER_SEC;
+            cout << "Thoi gian thuc thi cua giai thuat sap xep BucketSort va xuat ket qua la: "<< t <<endl;
+            break;
+        }
+        case 0: {
+            cout << "Thoat chuong trinh." << endl;
+            break;
+        }
+        default: {
+            cout << "Lua chon khong hop le!" << endl;
+            break;
+        }
+        }
+    } while (choice != 0);
+
+    return 0;
+}
+
+
+
+#include <iostream>
+#include <string>
+using namespace std;
+
+// Function to display the menu
+void displayMenu() {
+    cout << "--- Welcome to the Pizza Shop ---" << endl;
+    cout << "Choose your options:" << endl;
+
+    cout << "1.Vo banh:" << endl;
+    cout << "   a. Day" << endl;
+    cout << "   b. Mong" << endl;
+
+    cout << "2. Loai cheese:" << endl;
+    cout << "   a. Italian" << endl;
+    cout << "   b. Vietnam" << endl;
+    cout << "   c. USA" << endl;
+
+    cout << "3. Topping:" << endl;
+    cout << "   a. A" << endl;
+    cout << "   b. B" << endl;
+    cout << "   c. C" << endl;
+    cout << "   d. D" << endl;
+    cout << "   e. E" << endl;
+    cout << "   f. F" << endl;
+
+    cout << "4. Sauces:" << endl;
+    cout << "   a. Cay" << endl;
+    cout << "   b. Mat ong" << endl;
+}
+
+int main() {
+    string crust, cheese, topping, sauces;
+
+    // Display menu to the user
+    displayMenu();
+
+    // Get user choices
+    char crustChoice;
+    cout << "\nChon vo banh (a/b): ";
+    cin >> crustChoice;
+    crust = (crustChoice == 'a') ? "Day" : "Mong";
+
+    char cheeseChoice;
+    cout << "Chon cheese (a/b/c): ";
+    cin >> cheeseChoice;
+    if (cheeseChoice == 'a') {
+        cheese = "Italian";
+    } else if (cheeseChoice == 'b') {
+        cheese = "Vietnam";
+    } else {
+        cheese = "USA";
+    }
+
+    char toppingChoice;
+    cout << "Chọn topping (a/b/c/d/e/f): ";
+    cin >> toppingChoice;
+    switch (toppingChoice) {
+        case 'a': topping = "A"; break;
+        case 'b': topping = "B"; break;
+        case 'c': topping = "C"; break;
+        case 'd': topping = "D"; break;
+        case 'e': topping = "E"; break;
+        case 'f': topping = "F"; break;
+        default: topping = "Xin loi toping ban chon khong quan khong co"; break;
+    }
+
+    char saucesChoice;
+    cout << "Chon sauces (a/b): ";
+    cin >> saucesChoice;
+    sauces = (saucesChoice == 'a') ? "Cay" : "Mat ong";
+
+    // Display the user's pizza
+    cout << "\n--- Pizza Order ---" << endl;
+    cout << "Vo banh: " << crust << endl;
+    cout << "Cheese: " << cheese << endl;
+    cout << "Topping: " << topping << endl;
+    cout << "Sauces: " << sauces << endl;
+
+    cout << "\nCam on ban da dat pizza!" << endl;
+
+    return 0;
+}
+
+
+// Cai dat cay khung toi tieu trong do thi vo huong co trong so
+#include<iostream>
+#include<fstream>
+using namespace std;
+
+
+// duyet do thi bang kruskal
+const int MAX =20;
+int a[MAX][MAX];
+int n;
+char vertex [MAX];
+// khai bao tap E
+int E1[MAX];// dinh dau tien trong canh
+int E2[MAX];// dinh cuoi cung
+int wE[MAX];// trong so 
+int nE = 0; // so luong phan tu 
+// khai bao tap T
+int T1[MAX];
+int T2[MAX];
+int wT[MAX];
+int nT = 0;
+// tao tap E: danh sach tat ca cac canh cua do thi kem trong so
+void taoE()
+{
+    for(int i =0; i<n;i++)
+        for(int j =0; j < n;j++)
+            if(a[i][j] != 0)
+            {
+                E1[nE] = i;
+                E2[nE] = j;
+                wE[nE] = a[i][j];
+                a[i][j] =0;
+                a[j][i] = 0;
+                nE ++;
+            }
+}
+
+void xuatE(){
+    for(int i =0; i < nE; i++)
+        cout <<"Canh (" << vertex[E1[i]] << ","<<vertex[E2[i]] << "," << wE[i] << ")\n";
+
+}
+void inputFromFile()
+{
+    ifstream inFile;
+    inFile.open("D:\\kruskalTrongSo.txt");
+    if(inFile.is_open())
+    {
+        inFile>> n;
+        for( int i =0; i < n; i++)
+            inFile >> vertex[i];
+        for(int i =0; i < n;i++)
+            for(int j =0; j < n;j++)
+                inFile >> a[i][j];
+        inFile.close();
+        cout <<"Doc file thanh cong\n ";
+    }
+    else {
+        cout <<"File error!! \n";
+    }
+}
+
+void outPutMatrix(){
+    for(int i =0; i <n; i++){
+        for(int j =0; j < n;j++)
+            cout << a[i][j] << "\t";
+        cout << endl;
+    }
+}
+
+void Swap(int &a, int &b){
+    int tmp = a;
+    a = b;
+    b = tmp;
+}
+ 
+ void sapXepE()
+ {
+    for( int i =0; i < n-1; i++)
+        for(int j = i + 1; j < n; j++)
+            if(wE[i] > wE[j])
+            {
+                Swap(E1[i],E1[j]);
+                Swap(E2[i], E2[j]);
+                Swap(wE[i], wE[j]);
+            }
+ }
+bool check(int a[],int size, int x){
+    for(int i =0; i < size;i++)
+        if(x == a[i])
+            return true;
+        return false;
+}
+
+void kruskal(){
+    for( int i =0; i < nE; i++){
+       if(check(T1,nT,E1[i]) && check(T2, nT, E2[i]))
+       continue;
+       if(check(T1,nT,E2[i]) && check(T2, nT, E1[i]))
+        continue; 
+        T1[nT] = E1[i];
+        T2[nT] = E2[i];
+        wT[nT] = wE[i];
+        nT++;
+        if(nT == n -1)
+        break;
+
+    }
+}
+    
+void xuatCKTT(){
+    int sum =0;
+    cout <<"Cay khung toi tieu \n";
+    for( int i =0; i < nT; i++)
+    {
+        cout <<"(" << vertex[T1[i]] << ","<< vertex[T2[i]] << "," << wT[i] << ")\n";
+        sum += wT[i];
+    }
+    cout <<"Tong trong so: " << sum << endl;
+}
+
+
+
+int main(){
+    inputFromFile();
+    outPutMatrix();
+    taoE();
+    xuatE();
+    sapXepE();
+    kruskal();
+    xuatCKTT();
+
+
+    return 0;
+}
